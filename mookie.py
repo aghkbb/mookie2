@@ -2,6 +2,7 @@ from discord.ext import commands
 from dotenv import load_dotenv
 from foaas import foaas
 from dict_api import get_meaning
+from dao.mookiedao import *
 import ast
 import os
 import re
@@ -16,53 +17,54 @@ bot = commands.Bot(command_prefix=".")
 async def on_ready():
     print(f"{bot.user} is connected")
 
-@bot.command()
-async def players(ctx, *args):
-    print("Entered .players command")
+@bot.group()
+async def players(ctx):
+    if ctx.invoked_subcommand is None:
+        await ctx.send("Invalid command\nPlease refer to .help")
+        return
+
+@players.command()
+async def names(ctx):
+    print("list all players")
+    await ctx.send(list_player_by_name())
+    return
+
+@players.command()
+async def add(ctx, *args):
+    print("Adding player")
 
     arg_length = len(args)
 
     if arg_length == 0:
-        await ctx.send("Please enter at least 1 argument\nPlease refer to .help")
+        await ctx.send("Please enter a player to be added")
         return
-    
-    if args[0] == "list":
-        print("Listing all players")
+
+    response_list = []
+
+    for n in range(arg_length):
+        insert_player(args[n])
+        response_list.append(f"{args[n]} has been added")
+
+    await ctx.send("\n".join(response_list))
+    return
+
+@players.command()
+async def remove(ctx, *args):
+    print("Removing player")
+
+    arg_length = len(args)
+
+    if arg_length == 0:
+        await ctx.send("Please enter a player to be removed")
         return
-    
-    if args[0] == "add":
+        
+    response_list = []
 
-        print("Adding player")
+    for n in range(arg_length):
+        remove_player(args[n])
+        response_list.append(f"{args[n]} has been removed")
 
-        if arg_length == 1:
-            await ctx.send("Please enter a player to be added")
-            return
-
-        response_list = []
-
-        for n in range(1, arg_length):
-            print("in for loop: " + str(n))
-            response_list.append(f"{args[n]} has been added")
-
-        await ctx.send("\n".join(response_list))
-        return
-    
-    if args[0] == "remove":
-        print("Removing player")
-        if arg_length == 1:
-            await ctx.send("Please enter a player to be removed")
-            return
-            
-        response_list = []
-
-        for n in range(1, arg_length):
-            print("in for loop: " + str(n))
-            response_list.append(f"{args[n]} has been removed")
-
-        await ctx.send("\n".join(response_list))
-        return
-    
-    await ctx.send("Unknown command entered\nPlease refer to .help")
+    await ctx.send("\n".join(response_list))
     return
 
 @bot.command()
